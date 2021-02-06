@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"redis-impl/internal/app/server/domain"
-	"redis-impl/internal/app/server/usecase"
+	"github.com/babon21/redis-impl/internal/app/server/domain"
+	"github.com/babon21/redis-impl/internal/app/server/usecase"
 	"sync"
 	"time"
 )
@@ -118,7 +118,7 @@ func (r *InMemoryRedis) LGet(key string, index int) (string, error) {
 	}
 
 	arrLength := len(list)
-	if index < 0 && index >= arrLength {
+	if index < 0 || index >= arrLength {
 		return "", domain.ErrIndexOutOfRange
 	}
 
@@ -137,7 +137,7 @@ func (r *InMemoryRedis) LSet(key string, index int, value string) error {
 	}
 
 	arrLength := len(list)
-	if index < 0 && index >= arrLength {
+	if index < 0 || index >= arrLength {
 		return domain.ErrIndexOutOfRange
 	}
 
@@ -149,11 +149,11 @@ func (r *InMemoryRedis) LPush(key string, value string) (int, error) {
 	val, exists := r.load(key)
 	if !exists {
 		newArr := make([]string, 0, 5)
+		newArr = append(newArr, value)
 		r.store.Store(key, storeValue{
 			value: newArr,
 		})
 
-		newArr = append(newArr, value)
 		return len(newArr), nil
 	}
 
@@ -163,6 +163,9 @@ func (r *InMemoryRedis) LPush(key string, value string) (int, error) {
 	}
 
 	arr = append(arr, value)
+	r.store.Store(key, storeValue{
+		value: arr,
+	})
 	return len(arr), nil
 }
 
