@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -244,7 +245,6 @@ func TestInMemoryRedis_HSet(t *testing.T) {
 				return store
 			}()},
 			args:    args{key: "mykey", field: "some_field"},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -268,13 +268,10 @@ func TestInMemoryRedis_HSet(t *testing.T) {
 			r := &InMemoryRedis{
 				store: tt.fields.store,
 			}
-			got, err := r.HSet(tt.args.key, tt.args.field, tt.args.value)
+			err := r.HSet(tt.args.key, tt.args.field, tt.args.value)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HSet() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("HSet() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

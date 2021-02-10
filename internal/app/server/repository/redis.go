@@ -3,16 +3,20 @@ package repository
 import (
 	"github.com/babon21/redis-impl/internal/app/server/domain"
 	"github.com/babon21/redis-impl/internal/app/server/usecase"
+	"regexp"
 	"sync"
 	"time"
 )
 
 type InMemoryRedis struct {
-	store sync.Map
+	store    sync.Map
+	interval int
 }
 
-func NewInMemoryRedisRepository() usecase.RedisRepository {
-	return &InMemoryRedis{}
+func NewInMemoryRedisStore() usecase.RedisStore {
+	store := InMemoryRedis{interval: 20}
+	go store.startPeriodicDeleteExpirationKey()
+	return &store
 }
 
 type storeValue struct {
@@ -78,6 +82,19 @@ func (r *InMemoryRedis) Keys(pattern string) ([]string, error) {
 	return result, nil
 }
 
+func (r *InMemoryRedis) startPeriodicDeleteExpirationKey() {
+	ticker := time.NewTicker(time.Second * time.Duration(r.interval))
+	for range ticker.C {
+		r.store.Range(func(key, val interface{}) bool {
+			keyString := key.(string)
+			value := val.(storeValue)
+			r.tryDeleteKeyIfExpire(keyString, value)
+
+			return true
+		})
+	}
+}
+
 func (r *InMemoryRedis) HGet(key string, field string) (string, bool, error) {
 	value, exists := r.load(key)
 	if !exists {
@@ -97,7 +114,7 @@ func (r *InMemoryRedis) HGet(key string, field string) (string, bool, error) {
 	return v, true, nil
 }
 
-func (r *InMemoryRedis) HSet(key string, field string, value string) (bool, error) {
+func (r *InMemoryRedis) HSet(key string, field string, value string) error {
 	val, exists := r.load(key)
 	if !exists {
 		newMap := make(map[string]string)
@@ -106,16 +123,16 @@ func (r *InMemoryRedis) HSet(key string, field string, value string) (bool, erro
 		})
 
 		newMap[field] = value
-		return true, nil
+		return nil
 	}
 
 	storedMap, ok := val.value.(map[string]string)
 	if !ok {
-		return false, domain.ErrWrongType
+		return domain.ErrWrongType
 	}
 
 	storedMap[field] = value
-	return true, nil
+	return nil
 }
 
 func (r *InMemoryRedis) LGet(key string, index int) (string, error) {
@@ -193,7 +210,12 @@ func (r *InMemoryRedis) Expire(key string, duration int) bool {
 }
 
 func (r *InMemoryRedis) checkKeyExpiration(val storeValue) bool {
-	if val.expiry.Before(time.Now()) {
+	var defaultTime time.Time
+	if val.expiry == defaultTime {
+		return false
+	}
+
+	if val.expiry.After(time.Now()) {
 		return false
 	}
 	return true
@@ -206,5 +228,3 @@ func (r *InMemoryRedis) tryDeleteKeyIfExpire(key string, val storeValue) bool {
 	}
 	return false
 }
-
-// TODO need periodic check keys expiration
