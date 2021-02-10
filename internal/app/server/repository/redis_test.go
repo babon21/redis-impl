@@ -280,38 +280,58 @@ func TestInMemoryRedis_HSet(t *testing.T) {
 	}
 }
 
-//func TestInMemoryRedis_Keys(t *testing.T) {
-//	type fields struct {
-//		store sync.Map
-//	}
-//	type args struct {
-//		pattern string
-//	}
-//	tests := []struct {
-//		name    string
-//		fields  fields
-//		args    args
-//		want    []string
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			r := &InMemoryRedis{
-//				store: tt.fields.store,
-//			}
-//			got, err := r.Keys(tt.args.pattern)
-//			if (err != nil) != tt.wantErr {
-//				t.Errorf("Keys() error = %v, wantErr %v", err, tt.wantErr)
-//				return
-//			}
-//			if !reflect.DeepEqual(got, tt.want) {
-//				t.Errorf("Keys() got = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
+func TestInMemoryRedis_Keys(t *testing.T) {
+	type fields struct {
+		store sync.Map
+	}
+	type args struct {
+		pattern string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "Check keys command",
+			fields: fields{func() sync.Map {
+				var store sync.Map
+				store.Store("firstname", storeValue{
+					value: "some_string",
+				})
+
+				store.Store("lastname", storeValue{
+					value: "some_string",
+				})
+
+				store.Store("age", storeValue{
+					value: "35",
+				})
+				return store
+			}()},
+			args:    args{".*name.*"},
+			want:    []string{"firstname", "lastname"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &InMemoryRedis{
+				store: tt.fields.store,
+			}
+			got, err := r.Keys(tt.args.pattern)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Keys() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Keys() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestInMemoryRedis_LGet(t *testing.T) {
 	type fields struct {
