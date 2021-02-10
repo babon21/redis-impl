@@ -176,6 +176,7 @@ func (r *InMemoryRedis) Expire(key string, duration int) bool {
 	}
 
 	val.expiry = time.Now().Add(time.Second * time.Duration(duration))
+	r.store.Store(key, val)
 	return true
 }
 
