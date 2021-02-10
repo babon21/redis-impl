@@ -62,8 +62,20 @@ func (r *InMemoryRedis) Del(key string) bool {
 }
 
 func (r *InMemoryRedis) Keys(pattern string) ([]string, error) {
-	// TODO
-	panic("implement me")
+	reg, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0, 10)
+	r.store.Range(func(key, value interface{}) bool {
+		keyString := key.(string)
+		if reg.MatchString(keyString) {
+			result = append(result, keyString)
+		}
+		return true
+	})
+	return result, nil
 }
 
 func (r *InMemoryRedis) HGet(key string, field string) (string, bool, error) {
