@@ -1,6 +1,8 @@
 package api
 
-import "github.com/babon21/redis-impl/internal/app/server/domain"
+import (
+	"github.com/babon21/redis-impl/internal/app/server/usecase"
+)
 
 type SetStringRequest struct {
 	Key   string `json:"key"`
@@ -21,8 +23,8 @@ type PushToListResponse struct {
 }
 
 type SetFieldAndValueRequest struct {
-	Key   string              `json:"key"`
-	Pairs []domain.FieldValue `json:"pairs"`
+	Key   string               `json:"key"`
+	Pairs []usecase.FieldValue `json:"pairs"`
 }
 
 type SetFieldAndValueResponse struct {

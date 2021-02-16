@@ -1,7 +1,5 @@
 package usecase
 
-import "github.com/babon21/redis-impl/internal/app/server/domain"
-
 type RedisUsecase interface {
 	Set(key string, value string)
 	Get(key string) (string, bool, error)
@@ -9,7 +7,7 @@ type RedisUsecase interface {
 	Keys(pattern string) ([]string, error)
 
 	HGet(key string, field string) (string, bool, error)
-	HSet(key string, pairs []domain.FieldValue) (int, error)
+	HSet(key string, pairs []FieldValue) (int, error)
 
 	LGet(key string, index int) (string, error)
 	LSet(key string, index int, value string) error
@@ -48,7 +46,7 @@ func (r *redisUsecase) HGet(key string, field string) (string, bool, error) {
 	return r.redisStore.HGet(key, field)
 }
 
-func (r *redisUsecase) HSet(key string, pairs []domain.FieldValue) (int, error) {
+func (r *redisUsecase) HSet(key string, pairs []FieldValue) (int, error) {
 	for _, pair := range pairs {
 		if err := r.redisStore.HSet(key, pair.Field, pair.Value); err != nil {
 			return -1, err
