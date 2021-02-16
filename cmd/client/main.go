@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/babon21/redis-impl/internal/app/client/config"
 	cacheHttp "github.com/babon21/redis-impl/internal/app/client/delivery/http"
 	"github.com/babon21/redis-impl/internal/app/client/gateway"
 	"github.com/babon21/redis-impl/internal/app/client/usecase"
@@ -9,11 +11,13 @@ import (
 )
 
 func main() {
-	e := echo.New()
+	conf := config.Init()
 
-	redisGateway := gateway.NewRedisGateway("http://localhost:8080")
+	e := echo.New()
+	fmt.Println(conf.Server.ServerUrl)
+	redisGateway := gateway.NewRedisGateway(conf.Server.ServerUrl)
 	redisUsecase := usecase.NewRedisUsecase(redisGateway)
 	cacheHttp.NewCacheHandler(e, redisUsecase)
 
-	log.Fatal().Msg(e.Start(":" + "8081").Error())
+	log.Fatal().Msg(e.Start(":" + conf.Server.Port).Error())
 }
