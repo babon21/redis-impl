@@ -1,0 +1,25 @@
+version: "3.1"
+services:
+  cache-server:
+    build:
+      context: .
+      dockerfile: build/package/server.Dockerfile
+    env_file:
+      - server.env
+    container_name: cache-server
+    restart: on-failure
+    ports:
+      - 8080:8080
+
+  cache-client:
+    build:
+      context: .
+      dockerfile: build/package/client.Dockerfile
+    env_file:
+      - client.env
+    container_name: cache-client
+    restart: on-failure
+    ports:
+      - 8081:8081
+    depends_on:
+      - cache-server
