@@ -92,7 +92,7 @@ func NewCacheHandler(e *echo.Echo, us usecase.RedisUsecase) {
 
 func returnServerResponse(c echo.Context, response *http.Response, err error) error {
 	if err != nil {
-		return c.JSONPretty(response.StatusCode, ResponseError{Message: err.Error()}, "  ")
+		return c.JSONPretty(http.StatusInternalServerError, ResponseError{Message: err.Error()}, "  ")
 	}
 	defer response.Body.Close()
 
