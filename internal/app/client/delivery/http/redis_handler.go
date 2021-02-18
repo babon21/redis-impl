@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/babon21/redis-impl/internal/app/client/usecase"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 	"net/http"
 )
 
